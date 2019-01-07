@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana-logging
+  namespace: logging
+  labels:
+    k8s-app: kibana-logging
+    kubernetes.io/cluster-service: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: kibana-logging
+  template:
+    metadata:
+      labels:
+        k8s-app: kibana-logging
+      annotations:
+        seccomp.security.alpha.kubernetes.io/pod: 'docker/default'
+    spec:
+      volumes:
+      - name: tz-config
+        hostPath:
+          path: /usr/share/zoneinfo/Asia/Shanghai
+      - name: config
+        configMap:
+          name: kibana-config
+      containers:
+      - name: kibana-logging
+        image: luanpeng/lp:kibana-oss-6.2.4      # registry.cn-beijing.aliyuncs.com/efk-install/kibana-oss:6.2.4
+#        imagePullPolicy: Always
+        command: ["/usr/local/bin/kibana-docker"]   # 
+        resources:
+          limits:
+            cpu: 1000m
+          requests:
+            cpu: 100m
+        env:
+          - name: ELASTICSEARCH_URL
+            value: http://elasticsearch-logging:9200   
+#          - name: SERVER_BASEPATH
+#            value: /api/v1/namespaces/logging/services/kibana-logging/proxy
+        ports:
+        - containerPort: 5601
+          name: ui
+          protocol: TCP
+        volumeMounts:
+        - name: tz-config
+          mountPath: /etc/localtime
+        - name: config
+          mountPath: /opt/kibana/config/kibana.yml
+          subPath: kibana.yml
+          readOnly: False

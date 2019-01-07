@@ -1,0 +1,17 @@
+{
+	"ulid": "01CS2APNT937314ZH2A20WGBCG",
+	"minTime": 1538733600000,
+	"maxTime": 1538740800000,
+	"stats": {
+		"numSamples": 200286,
+		"numSeries": 1191,
+		"numChunks": 1191
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01CS2APNT937314ZH2A20WGBCG"
+		]
+	},
+	"version": 1
+}

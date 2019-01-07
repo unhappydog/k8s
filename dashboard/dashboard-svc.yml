@@ -1,0 +1,15 @@
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    k8s-app: kubernetes-dashboard
+  name: kubernetes-dashboard
+  namespace: kube-system
+spec:
+  type: LoadBalancer   # LoadBalancer    NodePort
+  ports:
+    - port: 8443         # 改成你开放的端口，LoadBalancer在网页中就可以直接输入该端口
+      targetPort: 8443
+#      nodePort: 30090   # 改成你支持的端口，NodePort在网页中输入该端口
+  selector:
+    k8s-app: kubernetes-dashboard

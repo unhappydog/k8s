@@ -1,0 +1,106 @@
+如果在阿里云上部署
+
+就执行
+
+
+
+kubectl create ns logging
+
+kubectl create -f ./es/elasticsearch-sa.yml
+kubectl create -f ./es/elasticsearch-rbac.yml
+kubectl create -f ./es/elasticsearch-svc.yml
+kubectl create -f ./es/elasticsearch-sts.yml
+#创建权限账号
+kubectl create -f ./fluentd/fluentd-sa.yml
+#创建角色，并绑定账号
+kubectl create -f ./fluentd/fluentd-rbac.yml
+#创建comfigmap
+kubectl create -f ./fluentd/fluentd-es-cm.yml
+#创建DaemonSet并绑定账号
+kubectl create -f ./fluentd/fluentd-es-ds.yml
+kubectl create -f ./kibana/configmap.yml
+kubectl create -f ./kibana/kibana-svc.yml
+kubectl create -f ./kibana/kibana-dp.yml
+
+
+注意:fluentd的pod中不要配置时区,因为存储的是时间戳,配置了反而错了
+
+
+查询当前所有index
+curl -X GET 'http://192.168.11.127:31001/_cat/indices?v'
+
+查询每个index的所有分组type
+curl '192.168.2.177:31001/_mapping?pretty=true'
+
+删除某个idnex
+curl -XDELETE '192.168.11.127:31001/shakespeare'
+删除所有的index
+curl -XDELETE '192.168.11.127:31001/*'  
+删除部分index
+curl -XDELETE '192.168.11.127:31001/logstash-2018.09*'              
+
+# 创建index
+curl -XPUT '192.168.2.177:31001/shakespeare'
+# 创建type和字段，以及设置映射
+curl -XPUT http://192.168.2.177:31001/shakespeare -d '
+{
+ "mappings" : {
+  "_default_" : {
+   "properties" : {
+    "speaker" : {"type": "string", "index" : "not_analyzed" },
+    "play_name" : {"type": "string", "index" : "not_analyzed" },
+    "line_id" : { "type" : "integer" },
+    "speech_number" : { "type" : "integer" }
+   }
+  }
+ }
+}
+';
+
+# 查看index的字段和映射
+curl '192.168.2.177:31001/logstash-2018.10.24/_mapping?pretty=true'
+
+查询记录
+curl '192.168.2.177:31001/logstash-2018.10.24/person/1?pretty=true'
+
+查询所有记录
+curl '192.168.2.177:31001/logstash-2018.10.24/fluentd/_search?pretty=true'
+
+
+# es的查询语句
+"search": {
+      "request": {
+        "index": [
+          "logstash-2018*"
+        ],
+        "body": {
+          "query": {
+            "bool": {
+              "must": [
+                {
+                  "query_string": {
+                    "fields": [
+                      "log"
+                    ],
+                    "analyze_wildcard": true,
+                    "query": "error"
+                  }
+                }
+              ],
+              "filter": [
+                {
+                  "range": {
+                    "@timestamp": {
+                      "gte": "now-10m",
+                      "lte": "now"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+
+

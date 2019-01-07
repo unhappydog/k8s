@@ -1,0 +1,24 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: kibana-config
+  namespace: logging
+  labels:
+    app: kibana
+data:
+  kibana.yml: |
+    server.name: kibana
+    server.host: "0"
+    elasticsearch.url: http://elasticsearch-logging:9200  
+    sentinl:
+      settings:
+        email:
+          active: true
+          user: luan.peng@intellif.com
+          password: 1qaz2wsx#EDC
+          host: smtp.exmail.qq.com
+          port: 465
+          ssl: true
+        report:
+          active: true
+

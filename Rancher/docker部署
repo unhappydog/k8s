@@ -1,0 +1,3 @@
+docker run -d --restart=unless-stopped -p 8001:80 -p 8002:443 -v /root/var/log/auditlog:/var/log/auditlog -e AUDIT_LEVEL=3 rancher/rancher:latest
+
+登录界面选择语言

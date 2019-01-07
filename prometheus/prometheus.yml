@@ -1,0 +1,34 @@
+
+global:                  # 全局设置，可以被覆盖
+  scrape_interval:     15s # 默认值为 15s，用于设置每次数据收集的间隔
+  external_labels:   # 所有时间序列和警告与外部通信时用的外部标签
+    monitor: 'codelab-monitor'
+
+# 告警管理配置
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+       - 192.168.42.192:9093
+
+rule_files: # 警告规则设置文件
+  - '/etc/prometheus/alert.rules'
+
+# 用于配置 scrape 的 endpoint  配置需要 scrape 的 targets 以及相应的参数
+# 抓取(pull)，即监控目标配置。默认只有主机本身的监控配置
+scrape_configs:
+  # 监控目标的label（这里的监控目标只是一个metric，而不是指某特定主机，可以在特定主机取多个监控目标），在抓取的每条时间序列表中都会添加此label
+  - job_name: 'prometheus'  # 一定要全局唯一, 采集 Prometheus 自身的 metrics
+
+    # 覆盖全局的 scrape_interval
+    scrape_interval: 5s
+
+    static_configs:  # 静态目标的配置
+      - targets: ['192.168.42.192:9090']    # Prometheus的endpoint
+
+  - job_name: 'node'  # 一定要全局唯一, 采集本机的 metrics，需要在本机安装 node_exporter
+
+    scrape_interval: 10s
+
+    static_configs:
+      - targets: ['192.168.42.192:9100']  # node_exporter 的 endpoint

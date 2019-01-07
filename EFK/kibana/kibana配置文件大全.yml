@@ -1,0 +1,49 @@
+---
+# Default Kibana configuration from kibana-docker.
+
+server.name: kibana
+server.host: "0"
+elasticsearch.url: http://elasticsearch-logging:9200
+
+sentinl:
+  es:
+    host: 192.168.1.1
+    port: 9200
+    timefield: '@timestamp'
+    default_index: watcher
+    type: sentinl-watcher
+    alarm_index: watcher_alarms
+    alarm_type: sentinl-alarm
+    script_type: sentinl-script
+  sentinl:
+    history: 20
+    results: 50
+    scriptResults: 50
+  settings:
+    email:
+      active: true
+      user: "elasticsearch@test.com"
+      password: "xxxxxx"
+      host: smtp.mailgun.org
+      ssl: true
+      timeout: 100000  # mail server connection timeout
+    slack:
+      active: false
+      username: username
+      hook: 'https://hooks.slack.com/services/<token>'
+      channel: '#channel'
+    webhook:
+      active: false
+      method: POST
+      host: host
+      port: 9200
+      path: ':/{{payload.watcher_id}}'
+      body: '{{payload.watcher_id}}{payload.hits.total}}'
+    report:
+      active: false
+      tmp_path: /tmp/
+      search_guard: false
+      simple_authentication: false
+    pushapps:
+      active: false
+      api_key: '<pushapps API Key>'

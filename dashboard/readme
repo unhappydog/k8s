@@ -1,0 +1,30 @@
+#kubectl create -f dashboard-sa-rbac-minal.yml     # 创建一个普通权限的kubernetes-dashboard用户角色，
+#kubectl create -f dashboard-sa-rbac-cluster.yml   # 创建一个集群权限的dashboard用户角色，
+#kubectl create -f dashboard-anonymous-rbac.yml    # 创建一个集群角色的匿名用户
+kubectl create -f dashboard-secret.yml     # 如果不给用户绑定秘钥则需要token才能进入
+kubectl create -f dashboard-svc.yml    # 提前修改里面的type和port
+kubectl create -f dashboard-dp.yml    # 修改里面绑定的sa
+
+注意：重新安装的时候记得把kubernetes-dashboard-key-holder   这个secret也删除了，这个是多生成的
+
+$ kubectl -n kube-system get sa dashboard -o yaml
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: 2018-10-09T06:50:53Z
+  name: dashboard
+  namespace: kube-system
+  resourceVersion: "4595"
+  selfLink: /api/v1/namespaces/kube-system/serviceaccounts/dashboard
+  uid: aa7ea848-cb8f-11e8-b2ee-fa163e36e5d7
+secrets:
+- name: dashboard-token-q4qqb
+
+$ kubectl -n kube-system describe secrets dashboard-token-vg52j
+...
+token:      eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJkYXNoYm9hcmQtdG9rZW4tOW16d2oiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGFzaGJvYXJkIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiNWVmOGYwYmQtZjQ4NS0xMWU4LTk5ODctMDAxNjNlMDg0YjE2Iiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50Omt1YmUtc3lzdGVtOmRhc2hib2FyZCJ9.i6LlVXFFRXS817pvX-F0zJkKthoBDfanBssHVespkJQr9c7pAFcux4B6enDAzgVCx4TB6YQqy16V1fX0QN3hsr4SMkuSNoFMlER9dAjCbanBpHo8b4xUI3ylzqt5RlMS5kFXScy0bxQVdwCR7tkqrS2Wc7_D0vAEY4AeWQ_lgpxLMMP0rL8CFEIC4Jba8TzxsxlS902NCBwt0x-S4vVhhhbRkee7EWATGWL1WyzIoSYFszIdnkQxDZXhN-nwg3uaLT2Y5pKol-7Rm0KwQKCQKqVgKTaB0SV9PleNj9jSVXJaawCjFxhlnNVjw7RiOAoGdrPDmmwk_8CwJ4808C8Lqg
+```
+
+
+将该token加入到kubeconfig文件中可以在dashboard中使用kubeconfig文件登录

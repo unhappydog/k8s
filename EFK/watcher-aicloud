@@ -1,0 +1,106 @@
+{
+  "actions": {
+    "email_aicloud": {
+      "throttle_period": "120m",
+      "email_html": {
+        "to": "luan.peng@intellif.com",
+        "from": "luan.peng@intellif.com",
+        "stateless": false,
+        "subject": "192.168.11.127,{{payload.hits.total}} new results from watcher {{watcher.title}} error",
+        "priority": "high",
+        "html": "<p>Hi {{watcher.username}},</p>\n<p>There are {{payload.hits.total}} results found by the watcher <i>{{watcher.title}}</i>.</p>\n<div style=\"color: grey\">\n  <hr>\n  <p>log is: </p>\n{{#payload.my_data}}{{time}}<br/>{{namespace_name}}:{{container_name}}<br/>{{log}}<br/>----------------------------------<br/><br/>{{/payload.my_data}}\n</div>"
+      }
+    }
+  },
+  "input": {
+    "search": {
+      "request": {
+        "index": [
+          "logstash-2018*"
+        ],
+        "type": [
+          "fluentd"
+        ],
+        "body": {
+          "query": {
+            "bool": {
+              "must": [
+                {
+                  "query_string": {
+                    "fields": [
+                      "log"
+                    ],
+                    "analyze_wildcard": true,
+                    "query": "error"
+                  }
+                }
+              ],
+              "filter": {
+                "bool": {
+                  "must": [
+                    {
+                      "term": {
+                        "kubernetes.namespace_name": "cloudai"
+                      }
+                    },
+                    {
+                      "bool": {
+                        "should": [
+                          {
+                            "term": {
+                              "kubernetes.container_name": "grpc"
+                            }
+                          },
+                          {
+                            "term": {
+                              "kubernetes.container_name": "traffic"
+                            }
+                          },
+                          {
+                            "term": {
+                              "kubernetes.container_name": "mqtt"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "range": {
+                        "@timestamp": {
+                          "gte": "now-120m",
+                          "lte": "now"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "condition": {
+    "script": {
+      "script": "payload.hits.total >= 1"
+    }
+  },
+  "transform": {
+    "script": {
+      "script": "payload.my_data=[];for(var i=0;i<payload.hits.hits.length;i++){if(payload.hits.hits[i]._source['kubernetes']['namespace_name'].indexOf('cloudai-2')>-1)if(payload.hits.hits[i]._source['kubernetes']['container_name'].indexOf('yinli')==-1){  payload.hits.hits[i]._source['newdate']=new Date(payload.hits.hits[i]._source['@timestamp']);   payload.my_data.push({time:payload.hits.hits[i]._source['newdate'],namespace_name:payload.hits.hits[i]._source['kubernetes']['namespace_name'],container_name:payload.hits.hits[i]._source['kubernetes']['container_name'],log:payload.hits.hits[i]._source['log'],message:payload.hits.hits[i]._source.message});}}"
+    }
+  },
+  "trigger": {
+    "schedule": {
+      "later": "every 120 minutes"
+    }
+  },
+  "disable": false,
+  "report": false,
+  "title": "yinli-aicloud",
+  "save_payload": false,
+  "spy": false,
+  "impersonate": false,
+  "username": "luanpeng"
+}

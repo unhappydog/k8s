@@ -1,0 +1,49 @@
+apiVersion: v1
+data:
+#     在health下面   rewrite name aa.example.com www.baidu.com
+#     在prometheus下面   file /etc/coredns/mydns.db example.org
+  Corefile: |
+    .:53 {
+        errors
+        health
+        rewrite name hbase-master-1 hbase-master-1.hbase-headless.cloudai-2.svc.cluster.local
+        kubernetes cluster.local in-addr.arpa ip6.arpa {
+           pods insecure
+           upstream
+           fallthrough in-addr.arpa ip6.arpa
+        }
+        prometheus :9153
+        proxy . /etc/resolv.conf
+        cache 30
+        reload
+    }
+
+  mydns.db: |
+    ; example.org test file
+    example.org.            IN      SOA     sns.dns.icann.org. noc.dns.icann.org. 2015082541 7200 3600 1209600 3600
+    example.org.            IN      NS      b.iana-servers.net.
+    example.org.            IN      NS      a.iana-servers.net.
+    example.org.            IN      A       127.0.0.1
+    a.b.c.w.example.org.    IN      TXT     "Not a wildcard"
+    cname.example.org.      IN      CNAME   www.example.net.
+    service.example.org.    IN      SRV     8080 10 10 example.org.
+
+kind: ConfigMap
+metadata:
+  name: coredns
+  namespace: kube-system
+---
+apiVersion: v1
+data:
+    # 10.96.0.10用来解析集群内地址,114和115用来解析外网地址
+  resolv.conf: |
+    nameserver 10.96.0.10
+    nameserver 114.114.114.114
+    nameserver 114.114.115.115
+    search localdomain kube-system.svc.cluster.local svc.cluster.local cluster.local openstacklocal
+    options timeout:2 attempts:3 rotate single-request-reopen
+
+kind: ConfigMap
+metadata:
+  name: resolv
+  namespace: kube-system
